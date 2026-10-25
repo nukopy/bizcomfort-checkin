@@ -23,7 +23,15 @@ void main() {
     final MemoryUnlockLogRepository log = MemoryUnlockLogRepository();
     final _ScriptedSession session = _ScriptedSession(
       hasSession: false,
-      html: '<p>拠点</p><p>ドア</p>',
+      html: '''
+<p id="error-message" style="display: none;">拠点から離れています。</p>
+<div class="unlock-select-block">
+  <p class="unlock-select-title">拠点</p>
+  <p class="unlock-select-text">BIZcomfort洗足池</p>
+  <p class="unlock-select-title">ドア</p>
+  <p class="unlock-select-text">洗足池①</p>
+</div>
+''',
     );
 
     await tester.pumpWidget(
@@ -54,6 +62,8 @@ void main() {
 
     expect(log.records, hasLength(1));
     expect(log.records.single.status, UnlockStatus.success);
+    expect(log.records.single.siteName, 'BIZcomfort洗足池');
+    expect(log.records.single.doorName, '洗足池①');
     expect(find.text('解錠に成功しました'), findsOneWidget);
     expect(find.byKey(const Key('qr-scanner')), findsNothing);
     expect(find.text('QRコードをかざす'), findsNothing);
@@ -72,7 +82,15 @@ void main() {
     final MemoryUnlockLogRepository log = MemoryUnlockLogRepository();
     final _ScriptedSession session = _ScriptedSession(
       hasSession: true,
-      html: '<div class="alert-danger">このドアから離れています</div>',
+      html: '''
+<p id="error-message" style="display: block;">拠点から離れています。</p>
+<div class="unlock-select-block" style="display: block;">
+  <p class="unlock-select-title">拠点</p>
+  <p class="unlock-select-text">BIZcomfort洗足池</p>
+  <p class="unlock-select-title">ドア</p>
+  <p class="unlock-select-text">洗足池①</p>
+</div>
+''',
     );
 
     await tester.pumpWidget(
@@ -88,8 +106,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(log.records.single.status, UnlockStatus.failed);
-    expect(find.textContaining('解除に失敗しました'), findsOneWidget);
-    expect(find.textContaining('このドアから離れています'), findsOneWidget);
+    expect(log.records.single.siteName, 'BIZcomfort洗足池');
+    expect(log.records.single.doorName, '洗足池①');
+    expect(log.records.single.errorMessage, '拠点から離れています。');
+    expect(find.textContaining('解錠に失敗しました'), findsOneWidget);
+    expect(find.textContaining('エラー：拠点から離れています。'), findsOneWidget);
   });
 
   testWidgets('キャンセルすると記録せずカメラを開く', (WidgetTester tester) async {

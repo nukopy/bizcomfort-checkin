@@ -95,9 +95,11 @@ class _CheckinTabsState extends State<CheckinTabs> {
     if (!context.mounted) {
       return;
     }
-    final String message = attempt.failed
-        ? (attempt.errorMessage == null ? '解除に失敗しました' : '解除に失敗しました\n${attempt.errorMessage}')
-        : '解錠に成功しました';
+    final String message = !attempt.failed
+        ? '解錠に成功しました'
+        : attempt.errorMessage == null
+        ? '解錠に失敗しました'
+        : '解錠に失敗しました\nエラー：${attempt.errorMessage}';
     await showDialog<void>(
       context: context,
       barrierDismissible: false,

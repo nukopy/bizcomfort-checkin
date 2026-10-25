@@ -24,6 +24,9 @@ class UnlockRecord {
     required this.longitude,
     required this.locality,
     required this.status,
+    this.siteName = '',
+    this.doorName = '',
+    this.errorMessage,
   });
 
   final Uri url;
@@ -32,6 +35,9 @@ class UnlockRecord {
   final double? longitude;
   final String locality;
   final UnlockStatus status;
+  final String siteName;
+  final String doorName;
+  final String? errorMessage;
 
   DoorDirection get direction {
     final List<String> segments = url.pathSegments.where((String s) => s.isNotEmpty).toList();

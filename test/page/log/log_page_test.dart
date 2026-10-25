@@ -17,6 +17,8 @@ void main() {
         longitude: 139.0,
         locality: '東京都目黒区',
         status: UnlockStatus.failed,
+        siteName: 'BIZcomfort目黒',
+        doorName: '目黒①',
       ),
     );
     repository.add(
@@ -27,6 +29,8 @@ void main() {
         longitude: 139.715,
         locality: '東京都大田区',
         status: UnlockStatus.success,
+        siteName: 'BIZcomfort洗足池',
+        doorName: '洗足池①',
       ),
     );
 
@@ -39,7 +43,9 @@ void main() {
     expect(find.text('2026 年 3 月'), findsOneWidget);
     expect(find.text('記録はまだありません'), findsNothing);
     expect(find.text('3月19日 09:05'), findsOneWidget);
-    expect(find.text('東京都大田区'), findsOneWidget);
+    expect(find.text('BIZcomfort洗足池'), findsOneWidget);
+    expect(find.text('洗足池①'), findsOneWidget);
+    expect(find.text('東京都大田区'), findsNothing);
     expect(find.text('enter'), findsOneWidget);
     expect(find.text('SUCCESS'), findsOneWidget);
     expect(find.text('FAILED'), findsNothing);
@@ -57,6 +63,8 @@ void main() {
         longitude: 139.0,
         locality: '東京都大田区',
         status: UnlockStatus.success,
+        siteName: 'BIZcomfort洗足池',
+        doorName: '洗足池①',
       ),
     );
     repository.add(
@@ -67,6 +75,8 @@ void main() {
         longitude: 139.0,
         locality: '東京都目黒区',
         status: UnlockStatus.failed,
+        siteName: 'BIZcomfort目黒',
+        doorName: '目黒①',
       ),
     );
 
@@ -76,15 +86,15 @@ void main() {
       ),
     );
 
-    expect(find.text('東京都目黒区'), findsOneWidget);
+    expect(find.text('BIZcomfort目黒'), findsOneWidget);
     await tester.tap(find.byKey(const Key('log-search')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('2026 年 10 月').last);
     await tester.pumpAndSettle();
 
     expect(find.text('2026 年 10 月'), findsOneWidget);
-    expect(find.text('東京都大田区'), findsOneWidget);
-    expect(find.text('東京都目黒区'), findsNothing);
+    expect(find.text('BIZcomfort洗足池'), findsOneWidget);
+    expect(find.text('BIZcomfort目黒'), findsNothing);
   });
 
   testWidgets('詳細に URL と緯度経度を出す', (WidgetTester tester) async {
@@ -97,6 +107,8 @@ void main() {
         longitude: 139.715,
         locality: '東京都大田区',
         status: UnlockStatus.success,
+        siteName: 'BIZcomfort洗足池',
+        doorName: '洗足池①',
       ),
     );
 
@@ -110,6 +122,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('https://mypage.bizcomfort.jp/unlock/entry/newer/'), findsOneWidget);
+    expect(find.text('拠点名'), findsOneWidget);
+    expect(find.text('BIZcomfort洗足池'), findsOneWidget);
+    expect(find.text('ドア名'), findsOneWidget);
+    expect(find.text('洗足池①'), findsOneWidget);
+    expect(find.text('現在地（市区町村）'), findsOneWidget);
+    expect(find.text('東京都大田区'), findsOneWidget);
+    expect(find.text('現在地（GPS）'), findsOneWidget);
     expect(find.text('35.561'), findsOneWidget);
     expect(find.text('139.715'), findsOneWidget);
     expect(find.text('SUCCESS'), findsOneWidget);

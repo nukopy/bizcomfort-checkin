@@ -83,7 +83,8 @@ class _LogPageState extends State<LogPage> {
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(record.locality),
+                            Text(record.siteName),
+                            Text(record.doorName),
                             Text(record.direction.name),
                             Text(record.status.label),
                           ],

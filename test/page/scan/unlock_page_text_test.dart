@@ -2,13 +2,30 @@ import 'package:bizcomfort_checkin/page/scan/unlock_page_text.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('拠点かドアが出ていれば成功', () {
-    expect(unlockPageSucceeded('<p>拠点 BIZcomfort洗足池</p><p>ドア 洗足池①</p>'), isTrue);
-    expect(unlockPageSucceeded('<form id="login"></form>'), isFalse);
-  });
+  const String place = '''
+<div class="unlock-select-block" style="display: block;">
+  <p class="unlock-select-title">拠点</p>
+  <p class="unlock-select-text">BIZcomfort洗足池</p>
+  <p class="unlock-select-title">ドア</p>
+  <p class="unlock-select-text">洗足池①</p>
+</div>
+''';
 
-  test('エラー欄の文を取り、無ければ null', () {
-    expect(extractUnlockError('<div class="alert-danger">このドアから離れています</div>'), 'このドアから離れています');
-    expect(extractUnlockError('<p>ログイン</p>'), isNull);
+  test('拠点から離れていますが表示されていなければ成功', () {
+    final UnlockPageReading hidden = readUnlockPage(
+      '<p id="error-message" style="display: none;">拠点から離れています。</p>$place',
+    );
+    expect(hidden.succeeded, isTrue);
+    expect(hidden.errorMessage, isNull);
+    expect(hidden.siteName, 'BIZcomfort洗足池');
+    expect(hidden.doorName, '洗足池①');
+
+    final UnlockPageReading shown = readUnlockPage(
+      '<p id="error-message" class="unlock-select-error" style="display: block;">拠点から離れています。</p>$place',
+    );
+    expect(shown.succeeded, isFalse);
+    expect(shown.errorMessage, '拠点から離れています。');
+    expect(shown.siteName, 'BIZcomfort洗足池');
+    expect(shown.doorName, '洗足池①');
   });
 }

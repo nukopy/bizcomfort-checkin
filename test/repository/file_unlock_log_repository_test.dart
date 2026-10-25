@@ -19,6 +19,9 @@ void main() {
         longitude: null,
         locality: 'NOT_PERMITTED',
         status: UnlockStatus.failed,
+        siteName: 'BIZcomfort洗足池',
+        doorName: '洗足池①',
+        errorMessage: '拠点から離れています。',
       ),
     );
 
@@ -27,6 +30,9 @@ void main() {
     expect(second.records.single.locality, 'NOT_PERMITTED');
     expect(second.records.single.latitude, isNull);
     expect(second.records.single.status, UnlockStatus.failed);
+    expect(second.records.single.siteName, 'BIZcomfort洗足池');
+    expect(second.records.single.doorName, '洗足池①');
+    expect(second.records.single.errorMessage, '拠点から離れています。');
     expect(second.records.single.at, DateTime.utc(2026, 10, 26, 1, 2));
   });
 }

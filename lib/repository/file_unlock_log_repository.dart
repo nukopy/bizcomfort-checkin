@@ -44,6 +44,9 @@ Map<String, Object?> _toJson(UnlockRecord record) {
     'longitude': record.longitude,
     'locality': record.locality,
     'status': record.status.label,
+    'siteName': record.siteName,
+    'doorName': record.doorName,
+    'errorMessage': record.errorMessage,
   };
 }
 
@@ -55,6 +58,9 @@ UnlockRecord _fromJson(Map<Object?, Object?> json) {
     longitude: _asDouble(json['longitude']),
     locality: '${json['locality']}',
     status: UnlockStatus.fromLabel('${json['status']}'),
+    siteName: json['siteName'] is String ? json['siteName'] as String : '',
+    doorName: json['doorName'] is String ? json['doorName'] as String : '',
+    errorMessage: json['errorMessage'] is String ? json['errorMessage'] as String : null,
   );
 }
 

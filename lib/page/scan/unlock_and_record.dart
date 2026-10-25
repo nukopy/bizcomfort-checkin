@@ -55,6 +55,8 @@ class UnlockAndRecord {
   Future<UnlockAttempt?> call({required Uri url, required Future<void> Function() confirm}) async {
     UnlockStatus status = UnlockStatus.success;
     String? errorMessage;
+    String siteName = '';
+    String doorName = '';
     try {
       await runner.open(
         repository: credentials,
@@ -64,12 +66,12 @@ class UnlockAndRecord {
         confirm: confirm,
       );
       final String html = await pageHtml();
-      final String? extracted = extractUnlockError(html);
-      if (extracted != null) {
+      final UnlockPageReading reading = readUnlockPage(html);
+      siteName = reading.siteName;
+      doorName = reading.doorName;
+      if (!reading.succeeded) {
         status = UnlockStatus.failed;
-        errorMessage = extracted;
-      } else if (!unlockPageSucceeded(html)) {
-        status = UnlockStatus.failed;
+        errorMessage = reading.errorMessage;
       }
     } on StateError {
       return null;
@@ -89,6 +91,9 @@ class UnlockAndRecord {
         longitude: fix?.longitude,
         locality: place,
         status: status,
+        siteName: siteName,
+        doorName: doorName,
+        errorMessage: errorMessage,
       ),
     );
     return UnlockAttempt(failed: status == UnlockStatus.failed, errorMessage: errorMessage);
