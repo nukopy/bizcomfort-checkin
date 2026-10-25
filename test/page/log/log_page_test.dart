@@ -53,7 +53,7 @@ void main() {
     expect(find.textContaining('unlock/entry/newer'), findsNothing);
   });
 
-  testWidgets('検索でリリース月の記録へ切り替える', (WidgetTester tester) async {
+  testWidgets('カレンダーでリリース月の記録へ切り替える', (WidgetTester tester) async {
     final MemoryUnlockLogRepository repository = MemoryUnlockLogRepository();
     repository.add(
       UnlockRecord(
@@ -87,7 +87,7 @@ void main() {
     );
 
     expect(find.text('BIZcomfort目黒'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('log-search')));
+    await tester.tap(find.byKey(const Key('log-month')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('2026 年 10 月').last);
     await tester.pumpAndSettle();

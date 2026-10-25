@@ -67,9 +67,10 @@ class _LogPageState extends State<LogPage> {
             title: Text(formatMonthHeading(_month)),
             actions: [
               IconButton(
-                key: const Key('log-search'),
+                key: const Key('log-month'),
+                tooltip: '月を選ぶ',
                 onPressed: _pickMonth,
-                icon: const Icon(Icons.search),
+                icon: const Icon(Icons.calendar_month),
               ),
             ],
           ),
