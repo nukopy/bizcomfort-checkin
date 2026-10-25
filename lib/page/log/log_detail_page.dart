@@ -8,24 +8,17 @@ class LogDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TextStyle? style = Theme.of(context).textTheme.bodyLarge;
     return Scaffold(
       appBar: AppBar(title: const Text('記録')),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          Text(formatUnlockRowDate(record.at)),
-          const Text('拠点名'),
-          Text(record.siteName),
-          const Text('ドア名'),
-          Text(record.doorName),
-          const Text('現在地（市区町村）'),
-          Text(record.locality),
-          const Text('現在地（GPS）'),
-          Text(record.latitude?.toString() ?? ''),
-          Text(record.longitude?.toString() ?? ''),
-          Text(record.direction.name),
-          Text(record.status.label),
-          Text(record.url.toString()),
+          Text('・解錠時刻：${formatUnlockRowDate(record.at)}', style: style),
+          Text('・拠点名：${record.siteName}', style: style),
+          Text('・ドア名：${record.doorName}', style: style),
+          Text('・現在地（市区町村）：${record.locality}', style: style),
+          Text('・現在地（GPS）：${formatGps(record.latitude, record.longitude)}', style: style),
         ],
       ),
     );

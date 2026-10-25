@@ -33,6 +33,18 @@ void main() {
         doorName: '洗足池①',
       ),
     );
+    repository.add(
+      UnlockRecord(
+        url: Uri.parse('https://mypage.bizcomfort.jp/unlock/entry/same-month/'),
+        at: DateTime(2026, 3, 18, 8, 0),
+        latitude: 35.0,
+        longitude: 139.0,
+        locality: '東京都大田区',
+        status: UnlockStatus.success,
+        siteName: 'BIZcomfort蒲田',
+        doorName: '蒲田①',
+      ),
+    );
 
     await tester.pumpWidget(
       MaterialApp(
@@ -43,11 +55,12 @@ void main() {
     expect(find.text('2026 年 3 月'), findsOneWidget);
     expect(find.text('記録はまだありません'), findsNothing);
     expect(find.text('3月19日 09:05'), findsOneWidget);
-    expect(find.text('BIZcomfort洗足池'), findsOneWidget);
-    expect(find.text('洗足池①'), findsOneWidget);
+    expect(find.textContaining('BIZcomfort洗足池'), findsOneWidget);
+    expect(find.textContaining('洗足池①'), findsOneWidget);
     expect(find.text('東京都大田区'), findsNothing);
-    expect(find.text('enter'), findsOneWidget);
-    expect(find.text('SUCCESS'), findsOneWidget);
+    expect(find.textContaining('enter'), findsNWidgets(2));
+    expect(find.text('SUCCESS'), findsNWidgets(2));
+    expect(find.byType(Divider), findsOneWidget);
     expect(find.text('FAILED'), findsNothing);
     expect(find.text('東京都目黒区'), findsNothing);
     expect(find.textContaining('unlock/entry/newer'), findsNothing);
@@ -86,15 +99,15 @@ void main() {
       ),
     );
 
-    expect(find.text('BIZcomfort目黒'), findsOneWidget);
+    expect(find.textContaining('BIZcomfort目黒'), findsOneWidget);
     await tester.tap(find.byKey(const Key('log-month')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('2026 年 10 月').last);
     await tester.pumpAndSettle();
 
     expect(find.text('2026 年 10 月'), findsOneWidget);
-    expect(find.text('BIZcomfort洗足池'), findsOneWidget);
-    expect(find.text('BIZcomfort目黒'), findsNothing);
+    expect(find.textContaining('BIZcomfort洗足池'), findsOneWidget);
+    expect(find.textContaining('BIZcomfort目黒'), findsNothing);
   });
 
   testWidgets('詳細に URL と緯度経度を出す', (WidgetTester tester) async {
@@ -118,19 +131,13 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byKey(const Key('log-detail')));
+    await tester.tap(find.text('3月19日 09:05'));
     await tester.pumpAndSettle();
 
-    expect(find.text('https://mypage.bizcomfort.jp/unlock/entry/newer/'), findsOneWidget);
-    expect(find.text('拠点名'), findsOneWidget);
-    expect(find.text('BIZcomfort洗足池'), findsOneWidget);
-    expect(find.text('ドア名'), findsOneWidget);
-    expect(find.text('洗足池①'), findsOneWidget);
-    expect(find.text('現在地（市区町村）'), findsOneWidget);
-    expect(find.text('東京都大田区'), findsOneWidget);
-    expect(find.text('現在地（GPS）'), findsOneWidget);
-    expect(find.text('35.561'), findsOneWidget);
-    expect(find.text('139.715'), findsOneWidget);
-    expect(find.text('SUCCESS'), findsOneWidget);
+    expect(find.text('・解錠時刻：3月19日 09:05'), findsOneWidget);
+    expect(find.text('・拠点名：BIZcomfort洗足池'), findsOneWidget);
+    expect(find.text('・ドア名：洗足池①'), findsOneWidget);
+    expect(find.text('・現在地（市区町村）：東京都大田区'), findsOneWidget);
+    expect(find.text('・現在地（GPS）：35.56, 139.72'), findsOneWidget);
   });
 }

@@ -76,31 +76,30 @@ class _LogPageState extends State<LogPage> {
           ),
           body: records.isEmpty
               ? const Center(child: Text('記録はまだありません'))
-              : ListView(
-                  children: [
-                    for (final UnlockRecord record in records)
-                      ListTile(
-                        title: Text(formatUnlockRowDate(record.at)),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('${record.siteName} ${record.doorName} ${record.direction.name}'),
-                            Text(record.status.label),
-                          ],
-                        ),
-                        trailing: IconButton(
-                          key: const Key('log-detail'),
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                builder: (BuildContext context) => LogDetailPage(record: record),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.chevron_right),
-                        ),
+              : ListView.separated(
+                  itemCount: records.length,
+                  separatorBuilder: (BuildContext context, int index) => const Divider(height: 1),
+                  itemBuilder: (BuildContext context, int index) {
+                    final UnlockRecord record = records[index];
+                    return ListTile(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (BuildContext context) => LogDetailPage(record: record),
+                          ),
+                        );
+                      },
+                      title: Text(formatUnlockRowDate(record.at)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${record.siteName} ${record.doorName} ${record.direction.name}'),
+                          Text(record.status.label),
+                        ],
                       ),
-                  ],
+                      trailing: const Icon(Icons.chevron_right),
+                    );
+                  },
                 ),
         );
       },

@@ -64,3 +64,10 @@ String formatUnlockRowDate(DateTime at) {
   String two(int value) => value.toString().padLeft(2, '0');
   return '${local.month}月${local.day}日 ${two(local.hour)}:${two(local.minute)}';
 }
+
+String formatGps(double? latitude, double? longitude) {
+  if (latitude == null || longitude == null) {
+    return '';
+  }
+  return '${latitude.toStringAsFixed(2)}, ${longitude.toStringAsFixed(2)}';
+}
