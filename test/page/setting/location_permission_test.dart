@@ -50,6 +50,28 @@ void main() {
     expect(gateway.opened, 1);
     expect(find.text('許可する'), findsNothing);
   });
+
+  testWidgets('許可済みでも設定を開ける', (WidgetTester tester) async {
+    final _FakeLocationPermission gateway = _FakeLocationPermission(LocationAccess.granted);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SettingPage(
+          loadCredentials: LoadCredentials(_UnusedCredentials()),
+          saveCredentials: SaveCredentials(_UnusedCredentials()),
+          watchLocationPermission: WatchLocationPermission(gateway),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('許可'), findsOneWidget);
+    expect(find.text('許可する'), findsNothing);
+
+    await tester.tap(find.text('設定を開く'));
+    await tester.pumpAndSettle();
+
+    expect(gateway.opened, 1);
+  });
 }
 
 class _FakeLocationPermission implements LocationPermissionGateway {
