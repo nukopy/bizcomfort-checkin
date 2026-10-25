@@ -24,8 +24,71 @@ BIZcomfort のドア解除は、部屋の QR コードを読み取るところ�
 
 ## Setup
 
+Check if prerequisites exists in local environment:
+
+```sh
+mise --version
+lefthook --version
+```
+
+Show mise tasks:
+
+```sh
+mise tasks
+```
+
 Install languages and tools:
 
 ```sh
+# install
 mise install
+
+# check versions
+dart --version
+flutter --version
+markdownlint-cli2 --version
+```
+
+## Development
+
+- Show available devices
+
+```sh
+mise devices
+# e.g.
+# [devices] $ flutter devices
+# Found 3 connected devices:
+#   iPhone 17e (mobile) • **** • ios            • com.apple.CoreSimulator.SimRuntime.iOS-27-0 (simulator)
+#   macOS (desktop)     • macos                                • darwin-arm64   • macOS 26.6 25G72 darwin-arm64
+#   Chrome (web)        • chrome                               • web-javascript • Google Chrome 156.0.8078.47
+```
+
+- Run the app on the selected device
+
+```sh
+mise dev -d "iPhone 17e"
+```
+
+- Format
+
+```sh
+mise format
+```
+
+- Lint
+
+```sh
+mise lint
+```
+
+- Test
+
+```sh
+mise test
+```
+
+- Check (Format, Lint, Test)
+
+```sh
+mise run check
 ```
