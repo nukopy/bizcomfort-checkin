@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bizcomfort_checkin/page/log/log_page.dart';
 import 'package:bizcomfort_checkin/page/scan/scan_page.dart';
 import 'package:bizcomfort_checkin/page/scan/unlock_and_record.dart';
+import 'package:bizcomfort_checkin/page/scan/unlock_trace.dart';
 import 'package:bizcomfort_checkin/page/setting/setting_page.dart';
 import 'package:bizcomfort_checkin/usecase/load_credentials.dart';
 import 'package:bizcomfort_checkin/usecase/save_credentials.dart';
@@ -41,6 +42,7 @@ class _CheckinTabsState extends State<CheckinTabs> {
   bool? _hasCredentials;
   Completer<void>? _confirm;
   bool _cancelUnlock = false;
+  bool _following = false;
   final ValueNotifier<bool> _cameraOpen = ValueNotifier<bool>(true);
   late final Future<void> _credentialsReady = _loadCredentials();
 
@@ -72,11 +74,16 @@ class _CheckinTabsState extends State<CheckinTabs> {
       return;
     }
     _setCameraOpen(false);
+    final UnlockTrace trace = recorder.trace;
+    setState(() => _following = true);
+    trace.reset();
+    trace.add('ページを開いています');
     final UnlockAttempt? attempt = await recorder.call(
       url: url,
       confirm: () async {
         final Completer<void> pending = Completer<void>();
         setState(() => _confirm = pending);
+        trace.add('ログインの確認を待っています');
         await pending.future;
         if (_cancelUnlock) {
           _cancelUnlock = false;
@@ -87,7 +94,12 @@ class _CheckinTabsState extends State<CheckinTabs> {
     if (!mounted) {
       return;
     }
-    setState(() => _confirm = null);
+    final List<String> lines = List<String>.of(trace.lines);
+    setState(() {
+      _confirm = null;
+      _following = false;
+    });
+    trace.reset();
     if (attempt == null) {
       _setCameraOpen(true);
       return;
@@ -105,7 +117,18 @@ class _CheckinTabsState extends State<CheckinTabs> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          content: Text(message),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(message),
+                const SizedBox(height: 16),
+                const Text('処理の経過'),
+                for (final String line in lines) Text('・$line'),
+              ],
+            ),
+          ),
           actions: [
             TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('閉じる')),
           ],
@@ -125,6 +148,7 @@ class _CheckinTabsState extends State<CheckinTabs> {
   }
 
   void _acceptLogin() {
+    widget.unlockAndRecord?.trace.add('ログインボタンを押しました');
     final Completer<void>? pending = _confirm;
     setState(() => _confirm = null);
     pending?.complete();
@@ -138,27 +162,78 @@ class _CheckinTabsState extends State<CheckinTabs> {
   }
 
   Widget? _loginActions() {
-    if (_confirm == null) {
+    final UnlockTrace? trace = widget.unlockAndRecord?.trace;
+    final bool waiting = _confirm != null;
+    if (!_following && !waiting) {
       return null;
     }
-    return SizedBox(
-      width: double.infinity,
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(onPressed: _cancelLogin, child: const Text('キャンセル')),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: FilledButton(onPressed: _acceptLogin, child: const Text('ログイン')),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_following && trace != null) _traceBox(trace.lines),
+        if (waiting) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(onPressed: _cancelLogin, child: const Text('キャンセル')),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(onPressed: _acceptLogin, child: const Text('ログイン')),
+              ),
+            ],
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _traceBox(List<String> lines) {
+    return Material(
+      color: Colors.white,
+      elevation: 6,
+      borderRadius: BorderRadius.circular(12),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 220),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                  ),
+                  SizedBox(width: 8),
+                  Text('処理の経過', style: TextStyle(color: Colors.black)),
+                ],
+              ),
+              for (final String line in lines)
+                Text('・$line', style: const TextStyle(color: Colors.black)),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final UnlockTrace? trace = widget.unlockAndRecord?.trace;
+    if (trace == null) {
+      return _scaffold(context);
+    }
+    return ListenableBuilder(
+      listenable: trace,
+      builder: (BuildContext context, Widget? child) => _scaffold(context),
+    );
+  }
+
+  Widget _scaffold(BuildContext context) {
     final Widget scan = Stack(
       children: [
         ScanPage(

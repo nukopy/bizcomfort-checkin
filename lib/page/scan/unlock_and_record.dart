@@ -2,6 +2,7 @@ import 'package:bizcomfort_checkin/domain/credentials.dart';
 import 'package:bizcomfort_checkin/domain/unlock_record.dart';
 import 'package:bizcomfort_checkin/page/scan/login_runner.dart';
 import 'package:bizcomfort_checkin/page/scan/unlock_page_text.dart';
+import 'package:bizcomfort_checkin/page/scan/unlock_trace.dart';
 
 class GeoFix {
   const GeoFix(this.latitude, this.longitude);
@@ -30,27 +31,29 @@ class UnlockAttempt {
 }
 
 class UnlockAndRecord {
-  const UnlockAndRecord({
+  UnlockAndRecord({
     required this.credentials,
     required this.log,
     required this.runner,
     required this.form,
     required this.session,
-    required this.pageHtml,
+    required this.readPage,
     required this.position,
     required this.locality,
     required this.now,
-  });
+    UnlockTrace? trace,
+  }) : trace = trace ?? UnlockTrace();
 
   final CredentialRepository credentials;
   final UnlockLogRepository log;
   final LoginRunner runner;
   final LoginFormTarget form;
   final UnlockSession session;
-  final Future<String> Function() pageHtml;
+  final Future<UnlockPageReading> Function() readPage;
   final CurrentPositionReader position;
   final LocalityReader locality;
   final DateTime Function() now;
+  final UnlockTrace trace;
 
   Future<UnlockAttempt?> call({required Uri url, required Future<void> Function() confirm}) async {
     UnlockStatus status = UnlockStatus.success;
@@ -65,20 +68,27 @@ class UnlockAndRecord {
         session: session,
         confirm: confirm,
       );
-      final String html = await pageHtml();
-      final UnlockPageReading reading = readUnlockPage(html);
+      trace.add('解錠ページを確認しています');
+      final UnlockPageReading reading = await readPage();
       siteName = reading.siteName;
       doorName = reading.doorName;
+      trace.add(reading.siteName.isEmpty ? '拠点：取得できませんでした' : '拠点：${reading.siteName}');
+      trace.add(reading.doorName.isEmpty ? 'ドア：取得できませんでした' : 'ドア：${reading.doorName}');
       if (!reading.succeeded) {
         status = UnlockStatus.failed;
         errorMessage = reading.errorMessage;
+        trace.add(errorMessage == null ? 'エラー：表示されていません' : 'error-message：$errorMessage');
+      } else {
+        trace.add('エラー：表示されていません');
       }
+      trace.add(status == UnlockStatus.failed ? '判定：FAILED' : '判定：SUCCESS');
     } on StateError {
       return null;
     } on UnlockCancelled {
       return null;
     } catch (_) {
       status = UnlockStatus.failed;
+      trace.add('判定：FAILED（ページを確認できませんでした）');
     }
 
     final GeoFix? fix = await position.read();

@@ -28,4 +28,43 @@ void main() {
     expect(shown.siteName, 'BIZcomfort洗足池');
     expect(shown.doorName, '洗足池①');
   });
+
+  test('エラーが見えるまで成功にしない', () {
+    expect(
+      unlockObservationSettled(
+        errorShown: true,
+        busy: false,
+        elapsed: Duration.zero,
+        repeatedQuiet: false,
+      ),
+      isTrue,
+    );
+    expect(
+      unlockObservationSettled(
+        errorShown: false,
+        busy: false,
+        elapsed: const Duration(seconds: 3),
+        repeatedQuiet: true,
+      ),
+      isFalse,
+    );
+    expect(
+      unlockObservationSettled(
+        errorShown: false,
+        busy: true,
+        elapsed: const Duration(seconds: 10),
+        repeatedQuiet: false,
+      ),
+      isFalse,
+    );
+    expect(
+      unlockObservationSettled(
+        errorShown: false,
+        busy: false,
+        elapsed: const Duration(seconds: 8),
+        repeatedQuiet: true,
+      ),
+      isTrue,
+    );
+  });
 }

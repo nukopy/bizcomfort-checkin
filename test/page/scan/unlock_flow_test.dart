@@ -1,6 +1,7 @@
 import 'package:bizcomfort_checkin/domain/credentials.dart';
 import 'package:bizcomfort_checkin/domain/unlock_record.dart';
 import 'package:bizcomfort_checkin/page/scan/login_runner.dart';
+import 'package:bizcomfort_checkin/page/scan/unlock_page_text.dart';
 import 'package:bizcomfort_checkin/page/scan/scan_page.dart';
 import 'package:bizcomfort_checkin/page/scan/unlock_and_record.dart';
 import 'package:bizcomfort_checkin/repository/memory_credential_repository.dart';
@@ -65,6 +66,10 @@ void main() {
     expect(log.records.single.siteName, 'BIZcomfort洗足池');
     expect(log.records.single.doorName, '洗足池①');
     expect(find.text('解錠に成功しました'), findsOneWidget);
+    expect(find.text('処理の経過'), findsOneWidget);
+    expect(find.textContaining('ログインボタンを押しました'), findsOneWidget);
+    expect(find.textContaining('エラー：表示されていません'), findsOneWidget);
+    expect(find.textContaining('判定：SUCCESS'), findsOneWidget);
     expect(find.byKey(const Key('qr-scanner')), findsNothing);
     expect(find.text('QRコードをかざす'), findsNothing);
 
@@ -111,6 +116,8 @@ void main() {
     expect(log.records.single.errorMessage, '拠点から離れています。');
     expect(find.textContaining('解錠に失敗しました'), findsOneWidget);
     expect(find.textContaining('エラー：拠点から離れています。'), findsOneWidget);
+    expect(find.text('処理の経過'), findsOneWidget);
+    expect(find.textContaining('判定：FAILED'), findsOneWidget);
   });
 
   testWidgets('キャンセルすると記録せずカメラを開く', (WidgetTester tester) async {
@@ -185,7 +192,7 @@ Widget _tabs({
       runner: LoginRunner(),
       form: session,
       session: session,
-      pageHtml: session.pageHtml,
+      readPage: session.readPage,
       position: _FixedPosition(),
       locality: _FixedLocality(),
       now: () => DateTime(2026, 10, 26, 9, 5),
@@ -209,7 +216,7 @@ class _ScriptedSession implements LoginFormTarget, UnlockSession {
   @override
   void fill({required String email, required String password}) {}
 
-  Future<String> pageHtml() async => html;
+  Future<UnlockPageReading> readPage() async => readUnlockPage(html);
 }
 
 class _FixedPosition implements CurrentPositionReader {

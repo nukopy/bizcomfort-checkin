@@ -77,3 +77,18 @@ bool _isHidden(String openingTag) {
 String _plain(String html) {
   return html.replaceAll(RegExp('<[^>]+>'), '').replaceAll('&nbsp;', ' ').trim();
 }
+
+bool unlockObservationSettled({
+  required bool errorShown,
+  required bool busy,
+  required Duration elapsed,
+  required bool repeatedQuiet,
+}) {
+  if (errorShown) {
+    return true;
+  }
+  if (busy || !repeatedQuiet) {
+    return false;
+  }
+  return elapsed >= const Duration(seconds: 8);
+}

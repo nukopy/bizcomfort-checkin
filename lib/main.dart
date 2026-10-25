@@ -5,6 +5,7 @@ import 'package:bizcomfort_checkin/components/offline_gate.dart';
 import 'package:bizcomfort_checkin/domain/network_connection.dart';
 import 'package:bizcomfort_checkin/page/scan/mobile_scanner_qr_source.dart';
 import 'package:bizcomfort_checkin/page/scan/unlock_and_record.dart';
+import 'package:bizcomfort_checkin/page/scan/unlock_trace.dart';
 import 'package:bizcomfort_checkin/page/scan/unlock_webview.dart';
 import 'package:bizcomfort_checkin/repository/connectivity_network_connection.dart';
 import 'package:bizcomfort_checkin/repository/device_location.dart';
@@ -26,7 +27,8 @@ Future<void> main() async {
     File('${directory.path}/unlock-log.json'),
   );
   final GeolocatorLocationPermission locationPermission = GeolocatorLocationPermission();
-  final UnlockWebHost web = UnlockWebHost(locationPermission);
+  final UnlockTrace trace = UnlockTrace();
+  final UnlockWebHost web = UnlockWebHost(locationPermission, trace);
   runApp(
     MyApp(
       connection: ConnectivityNetworkConnection(),
@@ -39,10 +41,11 @@ Future<void> main() async {
         unlockAndRecord: UnlockAndRecord(
           credentials: credentials,
           log: unlockLog,
-          runner: WebLoginRunner(web),
+          runner: WebLoginRunner(web, trace),
           form: web,
           session: web,
-          pageHtml: web.pageHtml,
+          readPage: web.readSettledPage,
+          trace: trace,
           position: GeolocatorCurrentPosition(),
           locality: PlatformLocality(),
           now: DateTime.now,
