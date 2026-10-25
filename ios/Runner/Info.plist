@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>ドアの QR コードを読み取るためにカメラを使います。</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>解除した場所をログに残し、ドアのページが現在地を確認できるようにします。</string>
 	<key>UIApplicationSceneManifest</key>

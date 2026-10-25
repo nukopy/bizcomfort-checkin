@@ -1,6 +1,7 @@
 import 'package:bizcomfort_checkin/domain/credentials.dart';
 import 'package:bizcomfort_checkin/domain/unlock_record.dart';
 import 'package:bizcomfort_checkin/page/scan/scan_page.dart';
+import 'package:bizcomfort_checkin/page/scan/unlock_and_record.dart';
 import 'package:bizcomfort_checkin/repository/memory_credential_repository.dart';
 import 'package:bizcomfort_checkin/repository/memory_location_permission.dart';
 import 'package:bizcomfort_checkin/repository/memory_unlock_log_repository.dart';
@@ -8,6 +9,7 @@ import 'package:bizcomfort_checkin/usecase/load_credentials.dart';
 import 'package:bizcomfort_checkin/usecase/save_credentials.dart';
 import 'package:bizcomfort_checkin/usecase/watch_location_permission.dart';
 import 'package:bizcomfort_checkin/usecase/watch_unlock_log.dart';
+import 'package:flutter/widgets.dart';
 
 class AppWire {
   AppWire({
@@ -15,6 +17,8 @@ class AppWire {
     required UnlockLogRepository unlockLog,
     required LocationPermissionGateway locationPermission,
     required this.scanSource,
+    this.unlockAndRecord,
+    this.hiddenWebView,
   }) : loadCredentials = LoadCredentials(credentials),
        saveCredentials = SaveCredentials(credentials),
        watchUnlockLog = WatchUnlockLog(unlockLog),
@@ -32,4 +36,6 @@ class AppWire {
   final WatchUnlockLog watchUnlockLog;
   final WatchLocationPermission watchLocationPermission;
   final QrScanSource scanSource;
+  final UnlockAndRecord? unlockAndRecord;
+  final Widget? hiddenWebView;
 }
