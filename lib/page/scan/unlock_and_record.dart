@@ -18,6 +18,10 @@ abstract class LocalityReader {
   Future<String?> read(GeoFix fix);
 }
 
+class UnlockCancelled implements Exception {
+  const UnlockCancelled();
+}
+
 class UnlockAttempt {
   const UnlockAttempt({required this.failed, this.errorMessage});
 
@@ -68,6 +72,8 @@ class UnlockAndRecord {
         status = UnlockStatus.failed;
       }
     } on StateError {
+      return null;
+    } on UnlockCancelled {
       return null;
     } catch (_) {
       status = UnlockStatus.failed;

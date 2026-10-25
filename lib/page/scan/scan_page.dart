@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bizcomfort_checkin/page/scan/unlock_url.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 abstract class QrScanSource {
@@ -22,10 +23,18 @@ class ListQrScanSource implements QrScanSource {
 }
 
 class ScanPage extends StatefulWidget {
-  const ScanPage({super.key, required this.source, required this.onUnlockUrl});
+  const ScanPage({
+    super.key,
+    required this.source,
+    required this.onUnlockUrl,
+    this.footer,
+    this.cameraOpen,
+  });
 
   final QrScanSource source;
   final ValueChanged<Uri> onUnlockUrl;
+  final Widget? footer;
+  final ValueListenable<bool>? cameraOpen;
 
   @override
   State<ScanPage> createState() => _ScanPageState();
@@ -34,14 +43,37 @@ class ScanPage extends StatefulWidget {
 class _ScanPageState extends State<ScanPage> {
   StreamSubscription<String>? _subscription;
   String? _lastAccepted;
+  late bool _closed = widget.cameraOpen?.value == false;
 
   @override
   void initState() {
     super.initState();
+    widget.cameraOpen?.addListener(_syncCamera);
     _subscription = widget.source.codes.listen(_onCode);
   }
 
+  @override
+  void didUpdateWidget(ScanPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.cameraOpen != widget.cameraOpen) {
+      oldWidget.cameraOpen?.removeListener(_syncCamera);
+      widget.cameraOpen?.addListener(_syncCamera);
+      _syncCamera();
+    }
+  }
+
+  void _syncCamera() {
+    final bool open = widget.cameraOpen?.value ?? true;
+    if (open) {
+      _lastAccepted = null;
+    }
+    setState(() => _closed = !open);
+  }
+
   void _onCode(String raw) {
+    if (_closed) {
+      return;
+    }
     final Uri? uri = Uri.tryParse(raw);
     if (uri == null || !isBizcomfortUnlockUrl(uri)) {
       return;
@@ -56,8 +88,39 @@ class _ScanPageState extends State<ScanPage> {
 
   @override
   void dispose() {
+    widget.cameraOpen?.removeListener(_syncCamera);
     _subscription?.cancel();
     super.dispose();
+  }
+
+  Widget _acceptedMessage(BuildContext context) {
+    final String? url = _lastAccepted;
+    if (url == null) {
+      return const SizedBox.expand();
+    }
+    final ColorScheme scheme = Theme.of(context).colorScheme;
+    return SizedBox.expand(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'QRコードの読み取りができました',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: scheme.onSurface),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              url,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -65,9 +128,21 @@ class _ScanPageState extends State<ScanPage> {
     return Column(
       children: [
         Expanded(
-          child: KeyedSubtree(key: const Key('qr-scanner'), child: widget.source.buildView()),
+          child: _closed
+              ? ColoredBox(
+                  key: const Key('qr-scanner-closed'),
+                  color: Theme.of(context).colorScheme.surface,
+                  child: _acceptedMessage(context),
+                )
+              : KeyedSubtree(key: const Key('qr-scanner'), child: widget.source.buildView()),
         ),
-        const Padding(padding: EdgeInsets.all(16), child: Text('QRコードをかざす')),
+        if (widget.footer != null)
+          Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 16), child: widget.footer)
+        else
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('QRコードをかざす', textAlign: TextAlign.center),
+          ),
       ],
     );
   }

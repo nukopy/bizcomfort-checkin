@@ -38,6 +38,16 @@ void main() {
     );
     await tester.pump();
     expect(log.records, isEmpty);
+    expect(find.text('ログイン'), findsOneWidget);
+    expect(find.text('キャンセル'), findsOneWidget);
+    expect(find.text('QRコードの読み取りができました'), findsOneWidget);
+    expect(find.text(entry), findsOneWidget);
+    expect(find.text('QRコードをかざす'), findsNothing);
+    expect(find.byKey(const Key('qr-scanner')), findsNothing);
+    final double loginX = tester.getCenter(find.text('ログイン')).dx;
+    await tester.pump();
+    expect(tester.getCenter(find.text('ログイン')).dx, loginX);
+    expect(loginX, greaterThan(tester.getSize(find.byType(Scaffold)).width * 0.4));
 
     await tester.tap(find.text('ログイン'));
     await tester.pumpAndSettle();
@@ -71,6 +81,33 @@ void main() {
     expect(log.records.single.status, UnlockStatus.failed);
     expect(find.textContaining('解除に失敗しました'), findsOneWidget);
     expect(find.textContaining('このドアから離れています'), findsOneWidget);
+  });
+
+  testWidgets('キャンセルすると記録せずカメラを開く', (WidgetTester tester) async {
+    final MemoryCredentialRepository credentials = MemoryCredentialRepository();
+    await credentials.write(const Credentials(email: 'member@example.com', password: 'secret'));
+    final MemoryUnlockLogRepository log = MemoryUnlockLogRepository();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: _tabs(
+          credentials: credentials,
+          log: log,
+          source: ListQrScanSource([entry]),
+          session: _ScriptedSession(hasSession: false, html: '<p>ドア</p>'),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('キャンセル'));
+    await tester.pumpAndSettle();
+
+    expect(log.records, isEmpty);
+    expect(find.text('ログイン'), findsNothing);
+    expect(find.text('QRコードの読み取りができました'), findsNothing);
+    expect(find.byKey(const Key('qr-scanner')), findsOneWidget);
+    expect(find.text('QRコードをかざす'), findsOneWidget);
   });
 
   testWidgets('認証情報が無いときは設定タブへ移る', (WidgetTester tester) async {

@@ -40,7 +40,15 @@ class _CheckinTabsState extends State<CheckinTabs> {
   int _index = 0;
   bool? _hasCredentials;
   Completer<void>? _confirm;
+  bool _cancelUnlock = false;
+  final ValueNotifier<bool> _cameraOpen = ValueNotifier<bool>(true);
   late final Future<void> _credentialsReady = _loadCredentials();
+
+  @override
+  void dispose() {
+    _cameraOpen.dispose();
+    super.dispose();
+  }
 
   Future<void> _loadCredentials() async {
     final credentials = await widget.loadCredentials();
@@ -63,34 +71,81 @@ class _CheckinTabsState extends State<CheckinTabs> {
       widget.onUnlockUrl(url);
       return;
     }
+    _setCameraOpen(false);
     final UnlockAttempt? attempt = await recorder.call(
       url: url,
       confirm: () async {
         final Completer<void> pending = Completer<void>();
         setState(() => _confirm = pending);
         await pending.future;
+        if (_cancelUnlock) {
+          _cancelUnlock = false;
+          throw const UnlockCancelled();
+        }
       },
     );
     if (!mounted) {
       return;
     }
     setState(() => _confirm = null);
-    if (attempt == null || !attempt.failed) {
+    if (attempt != null && attempt.failed) {
+      final String message = attempt.errorMessage == null
+          ? '解除に失敗しました'
+          : '解除に失敗しました\n${attempt.errorMessage}';
+      await showDialog<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Text(message),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('閉じる')),
+            ],
+          );
+        },
+      );
+    }
+    if (mounted) {
+      _setCameraOpen(true);
+    }
+  }
+
+  void _setCameraOpen(bool open) {
+    if (_cameraOpen.value == open) {
       return;
     }
-    final String message = attempt.errorMessage == null
-        ? '解除に失敗しました'
-        : '解除に失敗しました\n${attempt.errorMessage}';
-    await showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: Text(message),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('閉じる')),
-          ],
-        );
-      },
+    _cameraOpen.value = open;
+  }
+
+  void _acceptLogin() {
+    final Completer<void>? pending = _confirm;
+    setState(() => _confirm = null);
+    pending?.complete();
+  }
+
+  void _cancelLogin() {
+    _cancelUnlock = true;
+    final Completer<void>? pending = _confirm;
+    setState(() => _confirm = null);
+    pending?.complete();
+  }
+
+  Widget? _loginActions() {
+    if (_confirm == null) {
+      return null;
+    }
+    return SizedBox(
+      width: double.infinity,
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(onPressed: _cancelLogin, child: const Text('キャンセル')),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: FilledButton(onPressed: _acceptLogin, child: const Text('ログイン')),
+          ),
+        ],
+      ),
     );
   }
 
@@ -98,21 +153,39 @@ class _CheckinTabsState extends State<CheckinTabs> {
   Widget build(BuildContext context) {
     final Widget scan = Stack(
       children: [
-        ScanPage(source: widget.scanSource, onUnlockUrl: _unlock),
+        ScanPage(
+          source: widget.scanSource,
+          onUnlockUrl: _unlock,
+          cameraOpen: _cameraOpen,
+          footer: _loginActions(),
+        ),
         if (_hasCredentials == false)
-          Align(
-            alignment: Alignment.topCenter,
+          Center(
             child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('メールアドレス、パスワードが設定されていません'),
-                  TextButton(
-                    onPressed: () => setState(() => _index = 2),
-                    child: const Text('設定する'),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Material(
+                color: Theme.of(context).colorScheme.surface,
+                elevation: 6,
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'メールアドレス、パスワードが設定されていません',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyLarge
+                            ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton(
+                        onPressed: () => setState(() => _index = 2),
+                        child: const Text('設定する'),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -137,6 +210,7 @@ class _CheckinTabsState extends State<CheckinTabs> {
     ];
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
           if (widget.hiddenWebView != null)
             Positioned(
@@ -147,21 +221,6 @@ class _CheckinTabsState extends State<CheckinTabs> {
               child: Offstage(child: widget.hiddenWebView),
             ),
           pages[_index],
-          if (_confirm != null)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: FilledButton(
-                  onPressed: () {
-                    final Completer<void>? pending = _confirm;
-                    setState(() => _confirm = null);
-                    pending?.complete();
-                  },
-                  child: const Text('ログイン'),
-                ),
-              ),
-            ),
         ],
       ),
       bottomNavigationBar: NavigationBar(
