@@ -17,6 +17,10 @@ BIZcomfort のドア解除は、部屋の QR コードを読み取るところ�
 
 このアプリが目指すのは、QR コードを読み取っただけでチェックインが完了する状態。ブラウザを開き、ログインし直す手間を、読み取りの一回にまとめる。
 
+## MVP
+
+[docs/spec/mvp_20261026-000213.md](docs/spec/mvp_20261026-000213.md)
+
 ## Prerequisites
 
 - mise 2026.10.17 macos-arm64 (2026-10-20)
@@ -46,7 +50,16 @@ mise install
 # check versions
 dart --version
 flutter --version
+ruby --version
 markdownlint-cli2 --version
+
+# install gems
+gem install cocoapods
+cocoapods --version
+
+# install cocoapods dependencies
+cd ios
+pod install
 ```
 
 ## Development
