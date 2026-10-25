@@ -50,7 +50,16 @@ mise install
 # check versions
 dart --version
 flutter --version
+ruby --version
 markdownlint-cli2 --version
+
+# install gems
+gem install cocoapods
+cocoapods --version
+
+# install cocoapods dependencies
+cd ios
+pod install
 ```
 
 ## Development
