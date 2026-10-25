@@ -15,6 +15,20 @@ class WatchUnlockLog {
 
   Listenable get updates => _repository;
 
+  UnlockRecord? get latest {
+    final List<UnlockRecord> records = _repository.records;
+    if (records.isEmpty) {
+      return null;
+    }
+    UnlockRecord newest = records.first;
+    for (final UnlockRecord record in records.skip(1)) {
+      if (record.at.isAfter(newest.at)) {
+        newest = record;
+      }
+    }
+    return newest;
+  }
+
   UnlockShot shotFor(UnlockRecord record, {required DateTime now}) {
     return _repository.shotFor(record, now: now);
   }

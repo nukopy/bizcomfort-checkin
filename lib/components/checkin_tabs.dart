@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bizcomfort_checkin/domain/unlock_record.dart';
 import 'package:bizcomfort_checkin/page/log/log_page.dart';
 import 'package:bizcomfort_checkin/page/scan/scan_page.dart';
 import 'package:bizcomfort_checkin/page/scan/unlock_and_record.dart';
@@ -69,6 +70,16 @@ class _CheckinTabsState extends State<CheckinTabs> {
       return;
     }
     final UnlockAndRecord? recorder = widget.unlockAndRecord;
+    final UnlockRecord? latest = widget.watchUnlockLog.latest;
+    if (!mounted) {
+      return;
+    }
+    if (latest != null && latest.url.toString() == url.toString()) {
+      final bool proceed = await _confirmRepeatedUrl();
+      if (!proceed || !mounted) {
+        return;
+      }
+    }
     if (recorder == null) {
       widget.onUnlockUrl(url);
       return;
@@ -138,6 +149,26 @@ class _CheckinTabsState extends State<CheckinTabs> {
     if (mounted) {
       _setCameraOpen(true);
     }
+  }
+
+  Future<bool> _confirmRepeatedUrl() async {
+    final bool? proceed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: const Text('最新の解錠記録と同一の QR コードを読み込もうとしています。\nもう一度読み込みますか？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('キャンセル'),
+            ),
+            TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('読み込む')),
+          ],
+        );
+      },
+    );
+    return proceed ?? false;
   }
 
   void _setCameraOpen(bool open) {

@@ -67,12 +67,11 @@ class _ScanPageState extends State<ScanPage> {
 
   void _syncCamera() {
     final bool open = widget.cameraOpen?.value ?? true;
-    setState(() => _closed = !open);
     if (open) {
-      _scheduleRelease();
-    } else {
-      _release?.cancel();
+      _lastAccepted = null;
     }
+    _release?.cancel();
+    setState(() => _closed = !open);
   }
 
   void _scheduleRelease() {

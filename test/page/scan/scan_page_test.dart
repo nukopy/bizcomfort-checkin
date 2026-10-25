@@ -42,7 +42,7 @@ void main() {
     expect(accepted, hasLength(1));
   });
 
-  testWidgets('閉じたあとも同じ QR が写っている間は再度伝えない', (WidgetTester tester) async {
+  testWidgets('カメラを開き直すと同じ QR を一度だけ再度伝える', (WidgetTester tester) async {
     const String entry = 'https://mypage.bizcomfort.jp/unlock/entry/a0KRB000018nb3q2AA/';
     const String exit = 'https://mypage.bizcomfort.jp/unlock/exit/a0KRB000018nb3q2AA/';
     final _PushSource source = _PushSource();
@@ -67,20 +67,20 @@ void main() {
     await tester.pump();
     source.add(entry);
     await tester.pump();
-    expect(accepted, hasLength(1));
+    expect(accepted, hasLength(2));
 
-    source.add(exit);
+    source.add(entry);
     await tester.pump();
     expect(accepted, hasLength(2));
 
-    camera.value = false;
-    await tester.pump();
-    camera.value = true;
-    await tester.pump();
     await tester.pump(const Duration(milliseconds: 1500));
-    source.add(exit);
+    source.add(entry);
     await tester.pump();
     expect(accepted, hasLength(3));
+
+    source.add(exit);
+    await tester.pump();
+    expect(accepted, hasLength(4));
   });
 }
 

@@ -171,6 +171,83 @@ void main() {
 
     expect(find.byKey(const Key('email')), findsOneWidget);
   });
+
+  testWidgets('直前と同じ URL は読み込む前に確認する', (WidgetTester tester) async {
+    final MemoryCredentialRepository credentials = MemoryCredentialRepository();
+    await credentials.write(const Credentials(email: 'member@example.com', password: 'secret'));
+    final MemoryUnlockLogRepository log = MemoryUnlockLogRepository();
+    log.add(
+      UnlockRecord(
+        url: Uri.parse(entry),
+        at: DateTime(2026, 10, 26, 9, 0),
+        latitude: 35.561,
+        longitude: 139.715,
+        locality: '東京都大田区',
+        status: UnlockStatus.success,
+      ),
+    );
+    final _ScriptedSession session = _ScriptedSession(hasSession: true, html: '<p>ドア</p>');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: _tabs(
+          credentials: credentials,
+          log: log,
+          source: ListQrScanSource([entry]),
+          session: session,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.textContaining('直前の記録と同じ URL です'), findsOneWidget);
+    expect(session.opens, 0);
+    expect(log.records, hasLength(1));
+
+    await tester.tap(find.text('キャンセル'));
+    await tester.pumpAndSettle();
+
+    expect(session.opens, 0);
+    expect(log.records, hasLength(1));
+    expect(find.text('QRコードをかざす'), findsOneWidget);
+  });
+
+  testWidgets('確認して読み込むと同じ URL でも記録する', (WidgetTester tester) async {
+    final MemoryCredentialRepository credentials = MemoryCredentialRepository();
+    await credentials.write(const Credentials(email: 'member@example.com', password: 'secret'));
+    final MemoryUnlockLogRepository log = MemoryUnlockLogRepository();
+    log.add(
+      UnlockRecord(
+        url: Uri.parse(entry),
+        at: DateTime(2026, 10, 26, 9, 0),
+        latitude: 35.561,
+        longitude: 139.715,
+        locality: '東京都大田区',
+        status: UnlockStatus.success,
+      ),
+    );
+    final _ScriptedSession session = _ScriptedSession(
+      hasSession: true,
+      html: '<p id="error-message" style="display: none;"></p>',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: _tabs(
+          credentials: credentials,
+          log: log,
+          source: ListQrScanSource([entry]),
+          session: session,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('読み込む'));
+    await tester.pumpAndSettle();
+
+    expect(session.opens, 1);
+    expect(log.records, hasLength(2));
+  });
 }
 
 Widget _tabs({
@@ -206,9 +283,12 @@ class _ScriptedSession implements LoginFormTarget, UnlockSession {
   @override
   final bool hasSession;
   final String html;
+  int opens = 0;
 
   @override
-  Future<void> open(Uri url) async {}
+  Future<void> open(Uri url) async {
+    opens += 1;
+  }
 
   @override
   void useCookieSession() {}
