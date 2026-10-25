@@ -41,7 +41,10 @@ class ScanPage extends StatefulWidget {
 }
 
 class _ScanPageState extends State<ScanPage> {
+  static const Duration _rescanAfter = Duration(milliseconds: 1500);
+
   StreamSubscription<String>? _subscription;
+  Timer? _release;
   String? _lastAccepted;
   late bool _closed = widget.cameraOpen?.value == false;
 
@@ -64,10 +67,25 @@ class _ScanPageState extends State<ScanPage> {
 
   void _syncCamera() {
     final bool open = widget.cameraOpen?.value ?? true;
-    if (open) {
-      _lastAccepted = null;
-    }
     setState(() => _closed = !open);
+    if (open) {
+      _scheduleRelease();
+    } else {
+      _release?.cancel();
+    }
+  }
+
+  void _scheduleRelease() {
+    _release?.cancel();
+    if (_closed || _lastAccepted == null) {
+      return;
+    }
+    _release = Timer(_rescanAfter, () {
+      if (!mounted || _closed) {
+        return;
+      }
+      _lastAccepted = null;
+    });
   }
 
   void _onCode(String raw) {
@@ -80,8 +98,10 @@ class _ScanPageState extends State<ScanPage> {
     }
     final String value = uri.toString();
     if (value == _lastAccepted) {
+      _scheduleRelease();
       return;
     }
+    _release?.cancel();
     _lastAccepted = value;
     widget.onUnlockUrl(uri);
   }
@@ -89,6 +109,7 @@ class _ScanPageState extends State<ScanPage> {
   @override
   void dispose() {
     widget.cameraOpen?.removeListener(_syncCamera);
+    _release?.cancel();
     _subscription?.cancel();
     super.dispose();
   }
