@@ -88,22 +88,28 @@ class _CheckinTabsState extends State<CheckinTabs> {
       return;
     }
     setState(() => _confirm = null);
-    if (attempt != null && attempt.failed) {
-      final String message = attempt.errorMessage == null
-          ? '解除に失敗しました'
-          : '解除に失敗しました\n${attempt.errorMessage}';
-      await showDialog<void>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: Text(message),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('閉じる')),
-            ],
-          );
-        },
-      );
+    if (attempt == null) {
+      _setCameraOpen(true);
+      return;
     }
+    if (!context.mounted) {
+      return;
+    }
+    final String message = attempt.failed
+        ? (attempt.errorMessage == null ? '解除に失敗しました' : '解除に失敗しました\n${attempt.errorMessage}')
+        : '解錠に成功しました';
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text(message),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('閉じる')),
+          ],
+        );
+      },
+    );
     if (mounted) {
       _setCameraOpen(true);
     }

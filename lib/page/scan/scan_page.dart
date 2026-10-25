@@ -138,7 +138,7 @@ class _ScanPageState extends State<ScanPage> {
         ),
         if (widget.footer != null)
           Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 16), child: widget.footer)
-        else
+        else if (!_closed)
           const Padding(
             padding: EdgeInsets.all(16),
             child: Text('QRコードをかざす', textAlign: TextAlign.center),

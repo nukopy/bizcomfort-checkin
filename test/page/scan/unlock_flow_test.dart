@@ -54,7 +54,16 @@ void main() {
 
     expect(log.records, hasLength(1));
     expect(log.records.single.status, UnlockStatus.success);
-    expect(find.text('解除に失敗しました'), findsNothing);
+    expect(find.text('解錠に成功しました'), findsOneWidget);
+    expect(find.byKey(const Key('qr-scanner')), findsNothing);
+    expect(find.text('QRコードをかざす'), findsNothing);
+
+    await tester.tap(find.text('閉じる'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('解錠に成功しました'), findsNothing);
+    expect(find.byKey(const Key('qr-scanner')), findsOneWidget);
+    expect(find.text('QRコードをかざす'), findsOneWidget);
   });
 
   testWidgets('失敗はログに残り、取れたエラー文だけ足す', (WidgetTester tester) async {
