@@ -1,5 +1,6 @@
 import 'package:bizcomfort_checkin/domain/credentials.dart';
 import 'package:bizcomfort_checkin/domain/unlock_record.dart';
+import 'package:bizcomfort_checkin/page/scan/scan_page.dart';
 import 'package:bizcomfort_checkin/repository/memory_credential_repository.dart';
 import 'package:bizcomfort_checkin/repository/memory_location_permission.dart';
 import 'package:bizcomfort_checkin/repository/memory_unlock_log_repository.dart';
@@ -13,6 +14,7 @@ class AppWire {
     required CredentialRepository credentials,
     required UnlockLogRepository unlockLog,
     required LocationPermissionGateway locationPermission,
+    required this.scanSource,
   }) : loadCredentials = LoadCredentials(credentials),
        saveCredentials = SaveCredentials(credentials),
        watchUnlockLog = WatchUnlockLog(unlockLog),
@@ -22,10 +24,12 @@ class AppWire {
     credentials: MemoryCredentialRepository(),
     unlockLog: MemoryUnlockLogRepository(),
     locationPermission: MemoryLocationPermission(),
+    scanSource: ListQrScanSource(const <String>[]),
   );
 
   final LoadCredentials loadCredentials;
   final SaveCredentials saveCredentials;
   final WatchUnlockLog watchUnlockLog;
   final WatchLocationPermission watchLocationPermission;
+  final QrScanSource scanSource;
 }

@@ -14,12 +14,16 @@ class CheckinTabs extends StatefulWidget {
     required this.saveCredentials,
     required this.watchUnlockLog,
     required this.watchLocationPermission,
+    required this.scanSource,
+    required this.onUnlockUrl,
   });
 
   final LoadCredentials loadCredentials;
   final SaveCredentials saveCredentials;
   final WatchUnlockLog watchUnlockLog;
   final WatchLocationPermission watchLocationPermission;
+  final QrScanSource scanSource;
+  final ValueChanged<Uri> onUnlockUrl;
 
   @override
   State<CheckinTabs> createState() => _CheckinTabsState();
@@ -31,7 +35,7 @@ class _CheckinTabsState extends State<CheckinTabs> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = <Widget>[
-      const ScanPage(),
+      ScanPage(source: widget.scanSource, onUnlockUrl: widget.onUnlockUrl),
       Navigator(
         onGenerateRoute: (RouteSettings settings) {
           return MaterialPageRoute<void>(

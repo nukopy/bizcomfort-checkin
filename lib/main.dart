@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bizcomfort_checkin/components/checkin_tabs.dart';
+import 'package:bizcomfort_checkin/page/scan/scan_page.dart';
 import 'package:bizcomfort_checkin/repository/file_unlock_log_repository.dart';
 import 'package:bizcomfort_checkin/repository/geolocator_location_permission.dart';
 import 'package:bizcomfort_checkin/repository/secure_credential_repository.dart';
@@ -20,6 +21,7 @@ Future<void> main() async {
         ),
         unlockLog: FileUnlockLogRepository(File('${directory.path}/unlock-log.json')),
         locationPermission: GeolocatorLocationPermission(),
+        scanSource: ListQrScanSource(const <String>[]),
       ),
     ),
   );
@@ -47,6 +49,8 @@ class _MyAppState extends State<MyApp> {
         saveCredentials: _wire.saveCredentials,
         watchUnlockLog: _wire.watchUnlockLog,
         watchLocationPermission: _wire.watchLocationPermission,
+        scanSource: _wire.scanSource,
+        onUnlockUrl: (_) {},
       ),
     );
   }
