@@ -297,11 +297,11 @@ class _CheckinTabsState extends State<CheckinTabs> {
         children: [
           if (widget.hiddenWebView != null)
             Positioned(
-              left: 0,
+              left: -4000,
               top: 0,
-              width: 8,
-              height: 8,
-              child: Offstage(child: widget.hiddenWebView),
+              width: 390,
+              height: 844,
+              child: IgnorePointer(child: widget.hiddenWebView),
             ),
           pages[_index],
         ],

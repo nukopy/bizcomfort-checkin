@@ -14,4 +14,8 @@ class WatchUnlockLog {
   }
 
   Listenable get updates => _repository;
+
+  UnlockShot shotFor(UnlockRecord record, {required DateTime now}) {
+    return _repository.shotFor(record, now: now);
+  }
 }

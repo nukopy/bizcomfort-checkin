@@ -27,6 +27,8 @@ class UnlockRecord {
     this.siteName = '',
     this.doorName = '',
     this.errorMessage,
+    this.shotBytes,
+    this.shotName,
   });
 
   final Uri url;
@@ -38,6 +40,8 @@ class UnlockRecord {
   final String siteName;
   final String doorName;
   final String? errorMessage;
+  final Uint8List? shotBytes;
+  final String? shotName;
 
   DoorDirection get direction {
     final List<String> segments = url.pathSegments.where((String s) => s.isNotEmpty).toList();
@@ -52,6 +56,25 @@ abstract class UnlockLogRepository extends ChangeNotifier {
   List<UnlockRecord> get records;
 
   void add(UnlockRecord record);
+
+  UnlockShot shotFor(UnlockRecord record, {required DateTime now});
+}
+
+enum UnlockShotState { image, expired, missing }
+
+class UnlockShot {
+  const UnlockShot.expired() : state = UnlockShotState.expired, bytes = null;
+
+  const UnlockShot.missing() : state = UnlockShotState.missing, bytes = null;
+
+  UnlockShot.image(this.bytes) : state = UnlockShotState.image;
+
+  final UnlockShotState state;
+  final Uint8List? bytes;
+}
+
+bool shotRetained(DateTime at, DateTime now) {
+  return now.difference(at) < const Duration(days: 31);
 }
 
 String formatMonthHeading(DateTime month) {

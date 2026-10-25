@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:bizcomfort_checkin/domain/credentials.dart';
 import 'package:bizcomfort_checkin/page/scan/bizcomfort_form.dart';
@@ -134,6 +135,17 @@ class UnlockWebHost implements LoginFormTarget, UnlockSession {
     }
     _trace.add('表示の確認を打ち切りました');
     return latest;
+  }
+
+  Future<Uint8List?> captureShot() async {
+    final InAppWebViewController controller = await _ready();
+    return controller.takeScreenshot(
+      screenshotConfiguration: ScreenshotConfiguration(
+        compressFormat: CompressFormat.JPEG,
+        quality: 40,
+        snapshotWidth: 390,
+      ),
+    );
   }
 
   Future<_PageSignals> _readSignals(InAppWebViewController controller) async {

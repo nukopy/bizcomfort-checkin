@@ -85,7 +85,10 @@ class _LogPageState extends State<LogPage> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute<void>(
-                            builder: (BuildContext context) => LogDetailPage(record: record),
+                            builder: (BuildContext context) => LogDetailPage(
+                              record: record,
+                              shot: widget.watchUnlockLog.shotFor(record, now: widget.now),
+                            ),
                           ),
                         );
                       },

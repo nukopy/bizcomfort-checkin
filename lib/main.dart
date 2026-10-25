@@ -45,6 +45,7 @@ Future<void> main() async {
           form: web,
           session: web,
           readPage: web.readSettledPage,
+          captureShot: web.captureShot,
           trace: trace,
           position: GeolocatorCurrentPosition(),
           locality: PlatformLocality(),
