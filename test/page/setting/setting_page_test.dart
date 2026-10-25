@@ -1,8 +1,10 @@
 import 'package:bizcomfort_checkin/domain/credentials.dart';
 import 'package:bizcomfort_checkin/page/setting/setting_page.dart';
 import 'package:bizcomfort_checkin/repository/memory_credential_repository.dart';
+import 'package:bizcomfort_checkin/repository/memory_location_permission.dart';
 import 'package:bizcomfort_checkin/usecase/load_credentials.dart';
 import 'package:bizcomfort_checkin/usecase/save_credentials.dart';
+import 'package:bizcomfort_checkin/usecase/watch_location_permission.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,6 +16,7 @@ void main() {
         home: SettingPage(
           loadCredentials: LoadCredentials(repository),
           saveCredentials: SaveCredentials(repository),
+          watchLocationPermission: WatchLocationPermission(MemoryLocationPermission()),
         ),
       ),
     );

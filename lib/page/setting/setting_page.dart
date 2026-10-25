@@ -1,13 +1,20 @@
 import 'package:bizcomfort_checkin/domain/credentials.dart';
 import 'package:bizcomfort_checkin/usecase/load_credentials.dart';
 import 'package:bizcomfort_checkin/usecase/save_credentials.dart';
+import 'package:bizcomfort_checkin/usecase/watch_location_permission.dart';
 import 'package:flutter/material.dart';
 
 class SettingPage extends StatefulWidget {
-  const SettingPage({super.key, required this.loadCredentials, required this.saveCredentials});
+  const SettingPage({
+    super.key,
+    required this.loadCredentials,
+    required this.saveCredentials,
+    required this.watchLocationPermission,
+  });
 
   final LoadCredentials loadCredentials;
   final SaveCredentials saveCredentials;
+  final WatchLocationPermission watchLocationPermission;
 
   @override
   State<SettingPage> createState() => _SettingPageState();
@@ -16,6 +23,7 @@ class SettingPage extends StatefulWidget {
 class _SettingPageState extends State<SettingPage> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  LocationAccess _access = LocationAccess.needsRequest;
 
   @override
   void initState() {
@@ -25,7 +33,12 @@ class _SettingPageState extends State<SettingPage> {
 
   Future<void> _load() async {
     final Credentials? credentials = await widget.loadCredentials();
-    if (!mounted || credentials == null) {
+    final LocationAccess access = await widget.watchLocationPermission.read();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _access = access);
+    if (credentials == null) {
       return;
     }
     _email.text = credentials.email;
@@ -67,6 +80,26 @@ class _SettingPageState extends State<SettingPage> {
             },
             child: const Text('保存'),
           ),
+          const SizedBox(height: 32),
+          const Text('アクセス許可'),
+          const SizedBox(height: 8),
+          const Text('位置情報'),
+          Text(_access == LocationAccess.granted ? '許可' : '未許可'),
+          if (_access == LocationAccess.needsRequest)
+            FilledButton(
+              onPressed: () async {
+                final LocationAccess next = await widget.watchLocationPermission.request();
+                if (mounted) {
+                  setState(() => _access = next);
+                }
+              },
+              child: const Text('許可する'),
+            ),
+          if (_access == LocationAccess.blocked)
+            FilledButton(
+              onPressed: widget.watchLocationPermission.openSettings,
+              child: const Text('設定を開く'),
+            ),
         ],
       ),
     );
