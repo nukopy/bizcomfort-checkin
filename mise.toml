@@ -1,0 +1,84 @@
+min_version = "2026.10.18"
+
+[tools]
+flutter = { version = "3.47.8", checksum_expr = '"sha256:" + filter(fromJSON(body).releases, { #.archive endsWith filename })[0].sha256', platforms = { linux-x64 = { checksum_url = "https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json", url = "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_{{ version }}-stable.tar.xz" }, macos-arm64 = { checksum_url = "https://storage.googleapis.com/flutter_infra_release/releases/releases_macos.json", url = "https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_arm64_{{ version }}-stable.zip" }, macos-x64 = { checksum_url = "https://storage.googleapis.com/flutter_infra_release/releases/releases_macos.json", url = "https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_{{ version }}-stable.zip" }, windows-x64 = { checksum_url = "https://storage.googleapis.com/flutter_infra_release/releases/releases_windows.json", url = "https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_{{ version }}-stable.zip" } }, version_date_expr = 'fromJSON(body).releases | filter({ #.channel == "stable" }) | map({ [replace(#.version, "-stable", ""), #.release_date] })', version_expr = 'fromJSON(body).releases | filter({ #.channel == "stable" }) | map({ replace(#.version, "-stable", "") }) | sortVersions()', version_list_url = "https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json" }
+markdownlint-cli2 = "0.24.0"
+
+# ------------------------------------------------------------
+# Development tasks
+# ------------------------------------------------------------
+
+# format, lint, test
+[tasks.format]
+description = "Format Dart source files"
+run = "dart format ."
+
+[tasks.lint]
+description = "Analyze Flutter project"
+run = "flutter analyze --fatal-infos"
+
+[tasks.test]
+description = "Run Flutter tests"
+run = "flutter test"
+
+[tasks.check]
+description = "Format, analyze, and test"
+run = [{ tasks = ["format", "lint"] }, { tasks = ["test"] }]
+
+# fix for linter
+[tasks.fix]
+description = "Preview automated fixes from linter"
+run = "dart fix --dry-run"
+
+[tasks."fix:apply"]
+description = "Apply automated fixes from linter"
+run = "dart fix --apply"
+
+# development
+[tasks.devices]
+description = "List available devices"
+run = "flutter devices"
+
+[tasks.dev]
+description = "Run Flutter app (default: iOS)"
+usage = '''
+arg "[device]" help="Target device name or ID" default="iPhone"
+'''
+run = 'flutter run -d "$usage_device"'
+
+# [tasks.build]
+# description = "Build Flutter app (default: iOS)"
+# usage = '''
+# arg "[target]" help="Build target" default="ios" {
+#   choices "ios" "apk" "appbundle"
+# }
+# '''
+# run = 'flutter build "$usage_target"'
+
+# Markdown
+[tasks.mdlint]
+description = "Lint Markdown files"
+run = "markdownlint-cli2 --fix ./**/*.md"
+
+# ------------------------------------------------------------
+# CI tasks
+# ------------------------------------------------------------
+
+[tasks."ci:format"]
+description = "Check Dart formatting without modifying files"
+run = "dart format --output=none --set-exit-if-changed ."
+
+[tasks."ci:lint"]
+description = "(alias for 'lint') Analyze Flutter project"
+alias = "lint"
+
+[tasks."ci:test"]
+# ja: ci:format, ci:lint の成功後に ci:test が実行される。wait_for は、そのタスクが同じ実行に含まれる場合だけ順序を制約する。
+# en: ci:test runs after ci:format and ci:lint succeed. wait_for restricts order only when the task is included in the same execution.
+wait_for = ["ci:format", "ci:lint"]
+description = "Run Flutter tests"
+run = "flutter test"
+
+[tasks."ci:check"]
+description = "Run all CI checks"
+depends = ["ci:format", "ci:lint", "ci:test"]
