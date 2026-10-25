@@ -1,0 +1,54 @@
+# markdownlint-cli2 設定（ルール設定も含めてこのファイルに集約）。
+
+# .gitignore に載ったファイルを除外する。
+# ただし gitignore は「この設定ファイルと同階層・親階層」の .gitignore しか読まないため、
+# ネストした apps/server/.gitignore（node_modules を除外）は拾えない。下の ignores で明示的に除外する。
+gitignore: true
+
+ignores:
+  - "**/node_modules/**"
+
+# ルール設定。ref: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+config:
+  default: true
+
+  # ------------------------------------------------------------
+  # Basic rules
+  # ------------------------------------------------------------
+
+  # MD01: Heading levels should only increment by one level at a time
+  MD01: true
+
+  # MD013: Line length
+  MD013: false
+  # MD013:
+  #   line_length: 150
+  #   heading_line_length: 80
+
+  # MD022: Headings should be surrounded by blank lines
+  MD022: true
+
+  # MD024: Multiple headings with the same content
+  MD024:
+    siblings_only: true
+
+  # MD026: Emphasis used instead of a heading
+  MD026:
+    punctuation: "。，、．"
+
+  # MD033: Inline HTML
+  MD033: false
+
+  # MD034: Bare URL used
+  MD034: false
+
+  # MD036: Emphasis used instead of a heading
+  MD036: false
+
+  # MD041: First line in file should be a top level heading
+  MD041: false
+  # MD041:
+  #   level: 1
+
+  # MD060:
+  MD060: false
