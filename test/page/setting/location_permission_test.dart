@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bizcomfort_checkin/domain/credentials.dart';
 import 'package:bizcomfort_checkin/page/setting/setting_page.dart';
 import 'package:bizcomfort_checkin/usecase/load_credentials.dart';
@@ -72,6 +74,33 @@ void main() {
 
     expect(gateway.opened, 1);
   });
+
+  testWidgets('許可状態が分かるまで紫の許可ボタンを出さない', (WidgetTester tester) async {
+    final Completer<LocationAccess> pending = Completer<LocationAccess>();
+    final _GatedLocationPermission gateway = _GatedLocationPermission(pending);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SettingPage(
+          loadCredentials: LoadCredentials(_UnusedCredentials()),
+          saveCredentials: SaveCredentials(_UnusedCredentials()),
+          watchLocationPermission: WatchLocationPermission(gateway),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('設定を開く'), findsOneWidget);
+    expect(find.text('許可する'), findsNothing);
+    expect(find.text('未許可'), findsNothing);
+    final double buttonY = tester.getCenter(find.text('設定を開く')).dy;
+
+    pending.complete(LocationAccess.granted);
+    await tester.pumpAndSettle();
+
+    expect(find.text('許可'), findsOneWidget);
+    expect(find.text('許可する'), findsNothing);
+    expect(tester.getCenter(find.text('設定を開く')).dy, buttonY);
+  });
 }
 
 class _FakeLocationPermission implements LocationPermissionGateway {
@@ -90,6 +119,24 @@ class _FakeLocationPermission implements LocationPermissionGateway {
     access = LocationAccess.granted;
     return access;
   }
+
+  @override
+  Future<void> openSettings() async {
+    opened += 1;
+  }
+}
+
+class _GatedLocationPermission implements LocationPermissionGateway {
+  _GatedLocationPermission(this.pending);
+
+  final Completer<LocationAccess> pending;
+  int opened = 0;
+
+  @override
+  Future<LocationAccess> read() => pending.future;
+
+  @override
+  Future<LocationAccess> request() async => LocationAccess.granted;
 
   @override
   Future<void> openSettings() async {

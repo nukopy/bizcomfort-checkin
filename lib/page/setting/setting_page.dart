@@ -23,7 +23,7 @@ class SettingPage extends StatefulWidget {
 class _SettingPageState extends State<SettingPage> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
-  LocationAccess _access = LocationAccess.needsRequest;
+  LocationAccess? _access;
 
   @override
   void initState() {
@@ -57,6 +57,7 @@ class _SettingPageState extends State<SettingPage> {
     return Scaffold(
       primary: false,
       resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -127,6 +128,11 @@ class _SettingPageState extends State<SettingPage> {
                 ],
                 const SizedBox(height: 12),
                 OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                  ),
                   onPressed: widget.watchLocationPermission.openSettings,
                   child: const Text('設定を開く'),
                 ),
@@ -140,25 +146,31 @@ class _SettingPageState extends State<SettingPage> {
 
   Widget _locationStatus(BuildContext context) {
     final ColorScheme scheme = Theme.of(context).colorScheme;
-    final bool granted = _access == LocationAccess.granted;
+    final String? label = switch (_access) {
+      null => null,
+      LocationAccess.granted => '許可',
+      LocationAccess.needsRequest || LocationAccess.blocked => '未許可',
+    };
     return Row(
       children: [
         Icon(Icons.place_outlined, color: scheme.onSurfaceVariant),
         const SizedBox(width: 12),
         const Expanded(child: Text('位置情報')),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: granted ? scheme.primaryContainer : scheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            child: Text(
-              granted ? '許可' : '未許可',
-              style: Theme.of(context).textTheme.labelLarge
-                  ?.copyWith(color: granted ? scheme.onPrimaryContainer : scheme.onSurfaceVariant),
-            ),
-          ),
+        SizedBox(
+          height: 32,
+          child: label == null
+              ? const SizedBox.shrink()
+              : DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: scheme.outlineVariant),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    child: Text(label, style: TextStyle(color: scheme.onSurface)),
+                  ),
+                ),
         ),
       ],
     );
@@ -177,7 +189,7 @@ class _SettingSection extends StatelessWidget {
     final ColorScheme scheme = Theme.of(context).colorScheme;
     return Card(
       elevation: 0,
-      color: scheme.surfaceContainerLow,
+      color: Colors.white,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
