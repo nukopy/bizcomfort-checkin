@@ -1,0 +1,59 @@
+# lefthook: git hooks for a clean history
+# - pre-commit : format / lint / test. `format` rewrites files, so stage_fixed re-stages them.
+# - pre-push   : build (heavier; fine to gate right before sharing).
+# - commit-msg : Conventional Commits format check.
+#
+# `glob` scopes by path; a job with no matching changed files is skipped automatically.
+# (pre-commit: staged files / pre-push: pushed diff)
+#
+# Setup: `lefthook install` (wires .git/hooks)
+
+# GUI Git clients can't render ANSI escape codes. Keep all hook output plain text:
+# - colors: false        -> no colored text from lefthook itself
+# - output: limited set  -> drop lefthook's decorative frames/separators (meta, summary, skips);
+#                           only show a failing command's own output + which one failed
+# - env NO_COLOR: "1"     -> per-job below, so child tools (oxlint/oxfmt/vite/swift-format) don't color either
+colors: false
+output:
+  - execution_out
+  - failure
+
+pre-commit:
+  jobs:
+    - name: Mobile app
+      glob: "*.dart"
+      env:
+        NO_COLOR: "1"
+      group:
+        jobs:
+          - name: check
+            run: mise run ci:check
+    - name: Markdown
+      glob: "**/*.md"
+      env:
+        NO_COLOR: "1"
+      group:
+        jobs:
+          - name: lint
+            run: mise run mdlint
+
+# pre-push:
+#   parallel: true
+#   jobs:
+#     - name: mobile-build
+#       glob: "**/*.dart"
+#       env:
+#         NO_COLOR: "1"
+#       run: mise run ci:build
+
+commit-msg:
+  commands:
+    conventional-commits:
+      # Verify the first line follows Conventional Commits (allow Merge / Revert)
+      run: |
+        head -n1 "{1}" | grep -qE '^(Merge |Revert |(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?!?: .+)' || {
+          echo "Commit message must follow Conventional Commits." >&2
+          echo "  e.g.) feat: add health endpoint / fix(server): handle 404 / docs: update README" >&2
+          echo "  type: feat|fix|docs|style|refactor|perf|test|build|ci|chore" >&2
+          exit 1
+        }
