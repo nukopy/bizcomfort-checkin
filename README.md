@@ -20,6 +20,7 @@ BIZcomfort のドア解除は、部屋の QR コードを読み取るところ�
 ## Prerequisites
 
 - mise 2026.10.17 macos-arm64 (2026-10-20)
+- lefthook v2.2.2
 
 ## Setup
 
